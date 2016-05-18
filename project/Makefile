@@ -13,7 +13,7 @@ PROJECT_DIR = .
 ifeq ($(USE_OPT),)
 #  USE_OPT = -O2 -ggdb -std=gnu99 -fomit-frame-pointer -falign-functions=16
 #  USE_OPT = $(RFLAGS) -O1 -fgnu89-inline -ggdb -fomit-frame-pointer -falign-functions=16 -std=gnu99 -Werror-implicit-function-declaration -Werror -Wno-error=pointer-sign -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=sign-compare -Wno-error=unused-parameter -Wno-error=missing-field-initializers
-  USE_OPT = $(EXTRA_PARAMS) $(RFLAGS) -O2        -fomit-frame-pointer -falign-functions=16 -Werror-implicit-function-declaration -Werror -Wno-error=pointer-sign -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=sign-compare -Wno-error=unused-parameter -Wno-error=missing-field-initializers -Werror=type-limits -Wno-error=strict-aliasing -Wno-error=attributes
+  USE_OPT = $(EXTRA_PARAMS) $(RFLAGS) -O2        -fomit-frame-pointer -falign-functions=16 -Werror-implicit-function-declaration -Werror -Wno-error=pointer-sign -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=sign-compare -Wno-error=unused-parameter -Wno-error=missing-field-initializers -Werror=type-limits -Wno-error=strict-aliasing -Wno-error=attributes -Wno-error=aggressive-loop-optimizations
 endif
 
 # C specific options here (added to USE_OPT).
@@ -85,15 +85,15 @@ CHIBIOS = chibios
 ifneq ($(PROJECT_BOARD),OLIMEX_STM32_E407)
   PROJECT_BOARD = ST_STM32F4_DISCOVERY
 endif
-DDEFS += -D$(PROJECT_BOARD) -DSTM32F40XX=true
+DDEFS += -D$(PROJECT_BOARD) -DSTM32F40XX -DUSE_USB_OTG_FS
 
 
 # Imported source files and paths
-include app.mk
+#include app.mk
 
 
 # Define linker script file here
-LDSCRIPT= config/stm32f4ems/STM32F407xG_CCM.ld
+LDSCRIPT= STM32F407xG_CCM.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -118,9 +118,8 @@ CPPSRC = $(CHCPPSRC) \
 	$(CONTROLLERS_SRC_CPP) \
 	$(UTILSRC_CPP) \
 	$(CONTROLLERS_CORE_SRC_CPP) \
-	$(CONTROLLERS_MATH_SRC_CPP) \
-	rusefi.cpp \
-	main.cpp
+	$(CONTROLLERS_MATH_SRC_CPP)
+
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -153,6 +152,7 @@ INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
 	../usb-core/dev-driver \
 	../usb-core/otg-driver \
 	../usb-files \
+	../CMSIS \
 	../std-periph\inc \
 	config/engines \
 	config \
@@ -226,7 +226,7 @@ CPPWARN = -Wall -Wextra
 #
 
 # List all default C defines here, like -D_DEBUG=1
-DDEFS =
+# DDEFS =
 
 # List all default ASM defines here, like -D_DEBUG=1
 DADEFS =
