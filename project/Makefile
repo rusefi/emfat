@@ -13,7 +13,7 @@ PROJECT_DIR = .
 ifeq ($(USE_OPT),)
 #  USE_OPT = -O2 -ggdb -std=gnu99 -fomit-frame-pointer -falign-functions=16
 #  USE_OPT = $(RFLAGS) -O1 -fgnu89-inline -ggdb -fomit-frame-pointer -falign-functions=16 -std=gnu99 -Werror-implicit-function-declaration -Werror -Wno-error=pointer-sign -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=sign-compare -Wno-error=unused-parameter -Wno-error=missing-field-initializers
-  USE_OPT = $(EXTRA_PARAMS) $(RFLAGS) -O2        -fomit-frame-pointer -falign-functions=16 -Werror-implicit-function-declaration -Werror -Wno-error=pointer-sign -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=sign-compare -Wno-error=unused-parameter -Wno-error=missing-field-initializers -Werror=type-limits -Wno-error=strict-aliasing -Wno-error=attributes -Wno-error=aggressive-loop-optimizations
+  USE_OPT = $(EXTRA_PARAMS) $(RFLAGS) -O2        -fomit-frame-pointer -falign-functions=16 -Werror-implicit-function-declaration -Werror -Wno-error=pointer-sign -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=sign-compare -Wno-error=unused-parameter -Wno-error=missing-field-initializers -Werror=type-limits -Wno-error=strict-aliasing -Wno-error=attributes -Wno-error=aggressive-loop-optimizations -Wno-error=parentheses
 endif
 
 # C specific options here (added to USE_OPT).
@@ -85,11 +85,15 @@ CHIBIOS = chibios
 ifneq ($(PROJECT_BOARD),OLIMEX_STM32_E407)
   PROJECT_BOARD = ST_STM32F4_DISCOVERY
 endif
-DDEFS += -D$(PROJECT_BOARD) -DSTM32F40XX -DUSE_USB_OTG_FS
+DDEFS += -D$(PROJECT_BOARD) -DSTM32F40XX -DUSE_USB_OTG_FS -DCRT0_INIT_CORE=FALSE
 
 
 # Imported source files and paths
-#include app.mk
+include ../std-periph/src/periph.mk \
+	../usb-files/usb-files.mk \
+	../usb-files/msc-class/src/msc-class.mk \
+	../usb-core/otg-driver/otg-driver.mk \
+	../usb-core/dev-driver/dev-driver.mk
 
 
 # Define linker script file here
@@ -97,29 +101,21 @@ LDSCRIPT= STM32F407xG_CCM.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CSRC = $(PORTSRC) \
-	$(KERNSRC) \
+CSRC =	$(PERIPH) \
+	$(USB_FILES) \
+	$(MSC_CLASS) \
+	$(OTG_DRIVER) \
+	$(DEV_DRIVER) \
 	app.c \
-	emfat.c 
+	emfat.c \
+	crt0.c \
+	Interrupts.c \
+	StorageMode.c
+ 
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CPPSRC = $(CHCPPSRC) \
-	$(TRIGGER_SRC_CPP) \
-	$(TRIGGER_DECODERS_SRC_CPP) \
-	$(DEV_SRC_CPP) \
-	$(CONTROLLERS_ALGO_SRC_CPP) \
-	$(SYSTEMSRC_CPP) \
-	$(ENGINES_SRC_CPP) \
-	$(HW_LAYER_EMS_CPP) \
-	$(TUNERSTUDIO_SRC_CPP) \
-	$(CONSOLE_SRC_CPP) \
-	$(CONTROLLERS_SENSORS_SRC_CPP) \
-	$(CONTROLLERS_SRC_CPP) \
-	$(UTILSRC_CPP) \
-	$(CONTROLLERS_CORE_SRC_CPP) \
-	$(CONTROLLERS_MATH_SRC_CPP)
-
+CPPSRC = 
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -142,42 +138,16 @@ TCSRC =
 TCPPSRC =
 
 # List ASM source files here
-ASMSRC = $(PORTASM)
+ASMSRC = crt0_v7m.s
 
-INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
-         $(HALINC) $(PLATFORMINC) $(BOARDINC) \
-         $(CHCPPINC) \
-         $(CHIBIOS)/os/various \
+INCDIR=	\
 	../usb-files/msc-class/inc \
 	../usb-core/dev-driver \
 	../usb-core/otg-driver \
 	../usb-files \
 	../CMSIS \
 	../std-periph\inc \
-	config/engines \
-	config \
-	chibios/os/various \
-	ext \
-	ext_algo \
-	util \
-	console_util \
-	console \
-	console/binary \
-	hw_layer \
-	hw_layer/serial_over_usb \
-	hw_layer/algo \
-	hw_layer/lcd \
-	hw_layer/stm32f4 \
-	development \
-	development/hw_layer \
-	development/test \
-	controllers \
-	controllers/sensors \
-	controllers/system \
-	controllers/algo \
-	controllers/core \
-	controllers/math \
-	controllers/trigger
+	.
 
 #
 # Project, sources and paths
